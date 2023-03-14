@@ -2,24 +2,27 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MouseDetection : MonoBehaviour
+public class AttackController : MonoBehaviour
 {
-    [SerializeField] private Camera mainCamera;
+    [SerializeField] private Camera cursorCam;
 
+    [Header("Animators \n")]
     [SerializeField] private Animator _rotationAnimator;
     [SerializeField] private Animator _playerAnimator;
 
-    public LayerMask mask;
 
     public GameObject player;
+
+    [Header("Cursor Detection \n")]
+    public LayerMask mask;
+
     public GameObject mousePos;
+    public GameObject mousePoint;
 
-    public GameObject cube;
+    private bool canAttack = true;
+    private bool isAttacking;
 
-    public bool canAttack = true;
-    public bool isAttacking;
-
-    public int attackIndex = 0;
+    private int attackIndex = 0;
 
     private void Update()
     {
@@ -31,20 +34,23 @@ public class MouseDetection : MonoBehaviour
 
         //Debug.DrawRay(transform.position, mouseWorldPosition - transform.position, Color.red);
 
-        Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+        Ray ray = cursorCam.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
        
-        if (isAttacking && !isPlaying(_playerAnimator, "attack2") && !isPlaying(_playerAnimator, "attack1"))
+        
+        
+        if (isAttacking && !_playerAnimator.IsInTransition(0) && !isPlaying(_playerAnimator, "attack1") && !_playerAnimator.GetBool("Attack2"))
+        {
+            print("caca2");
+            ResetAttak();
+        }
+        else if(isAttacking && !_playerAnimator.IsInTransition(0) && !isPlaying(_playerAnimator, "attack2") && !isPlaying(_playerAnimator, "attack1"))
         {
             print("caca");
             ResetAttak();
         }
-        else if (isAttacking && !isPlaying(_playerAnimator, "attack1") && !_playerAnimator.GetBool("Attack2"))
-        {
-            ResetAttak();
-        }
 
-        if (Input.GetMouseButtonDown(0) && attackIndex == 0)
+        if (Input.GetMouseButtonDown(0) && attackIndex == 0 && !isPlaying(_playerAnimator, "attack1"))
         {
             if(Physics.Raycast(ray, out hit, 100, mask) && canAttack && !isAttacking)
             {
@@ -57,14 +63,14 @@ public class MouseDetection : MonoBehaviour
 
                 _playerAnimator.Play("attack1");
 
-                cube.transform.position = hit.point;
+                mousePoint.transform.position = hit.point;
 
-                mousePos.transform.LookAt(cube.transform.position, Vector3.up);
+                mousePos.transform.LookAt(mousePoint.transform.position, Vector3.up);
 
                 player.transform.eulerAngles = Quaternion.Euler(0, mousePos.transform.eulerAngles.y, 0).eulerAngles;
             }
         }
-        else if (Input.GetMouseButtonDown(0) && attackIndex > 0)
+        else if (Input.GetMouseButtonDown(0) && attackIndex > 0 && !isPlaying(_playerAnimator, "attack2"))
         {
             canAttack = false;
             isAttacking = true;
